@@ -31,18 +31,49 @@ public class AST {
         PropertyConfigurator.configure("log4j.properties");
 
         CompilationUnit compilationUnit = StaticJavaParser.parse(new File(FILE_PATH));
+        String apiPrefix = getApiPrefix(compilationUnit);
+        log.info(apiPrefix);
+        getMethodParams(compilationUnit);
+        getImportVo(compilationUnit);
+    }
+
+    /**
+     * 获取Controller的请求根路径
+     *
+     * @param compilationUnit CompilationUnit 对象
+     * @return String Controller的请求根路径
+     */
+    private static String getApiPrefix(CompilationUnit compilationUnit) {
         VoidVisitor<List<String>> annotationVisitor = new ApiPrefix();
         List<String> apiPrefixes = new ArrayList<>();
         annotationVisitor.visit(compilationUnit, apiPrefixes);
-        String apiPrefix = apiPrefixes.get(0);
+        return apiPrefixes.get(0);
+    }
 
-        StringListMap map = new StringListMap();
-        VoidVisitor<StringListMap> method = new Method();
-        method.visit(compilationUnit, map);
-
+    /**
+     * 获取 引入的自定义的实体相对路径 组成的HashSet
+     *
+     * @param compilationUnit CompilationUnit 对象
+     * @return HashSet 引入的自定义的实体相对路径
+     */
+    private static HashSet<String> getImportVo(CompilationUnit compilationUnit) {
         HashSet<String> set = new HashSet<>();
         VoidVisitor<HashSet<String>> importVisitor = new ImportVo();
         importVisitor.visit(compilationUnit, set);
+        return set;
+    }
+
+    /**
+     * 获取 方法参数和请求路径对象 组成的Map
+     *
+     * @param compilationUnit CompilationUnit对象
+     * @return StringListMap 方法参数和请求路径对象
+     */
+    private static StringListMap getMethodParams(CompilationUnit compilationUnit) {
+        StringListMap map = new StringListMap();
+        VoidVisitor<StringListMap> method = new Method();
+        method.visit(compilationUnit, map);
+        return map;
     }
 
     private static class StringListMap extends HashMap<String, List<String>> {
