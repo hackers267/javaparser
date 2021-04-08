@@ -29,13 +29,13 @@ public class AST {
 
     public static void main(String[] args) throws FileNotFoundException {
         PropertyConfigurator.configure("log4j.properties");
-        AST.class.getResource(".");
+
         CompilationUnit compilationUnit = StaticJavaParser.parse(new File(FILE_PATH));
         VoidVisitor<List<String>> annotationVisitor = new ApiPrefix();
         List<String> apiPrefixes = new ArrayList<>();
         annotationVisitor.visit(compilationUnit, apiPrefixes);
         String apiPrefix = apiPrefixes.get(0);
-        log.info("aprPrefix:{}", apiPrefix);
+
         StringListMap map = new StringListMap();
         VoidVisitor<StringListMap> method = new Method();
         method.visit(compilationUnit, map);
