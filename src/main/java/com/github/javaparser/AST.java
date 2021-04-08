@@ -1,6 +1,7 @@
 package com.github.javaparser;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
@@ -15,6 +16,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,10 +39,10 @@ public class AST {
         StringListMap map = new StringListMap();
         VoidVisitor<StringListMap> method = new Method();
         method.visit(compilationUnit, map);
-        map.forEach((x, y) -> {
-            System.out.println(x);
-            System.out.println(y);
-        });
+
+        HashSet<String> set = new HashSet<>();
+        VoidVisitor<HashSet<String>> importVisitor = new ImportVo();
+        importVisitor.visit(compilationUnit, set);
     }
 
     private static class StringListMap extends HashMap<String, List<String>> {
@@ -74,6 +76,16 @@ public class AST {
                     .map(Node::toString)
                     .collect(Collectors.toList());
             arg.put(api, parameters);
+        }
+    }
+
+    private static class ImportVo extends VoidVisitorAdapter<HashSet<String>> {
+        @Override
+        public void visit(ImportDeclaration id, HashSet<String> arg) {
+            super.visit(id, arg);
+            if (id.getNameAsString().contains("vo")) {
+                arg.add(id.getNameAsString());
+            }
         }
     }
 }
