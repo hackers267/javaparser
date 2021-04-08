@@ -5,9 +5,6 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
-import com.github.javaparser.ast.expr.AnnotationExpr;
-import com.github.javaparser.ast.expr.MemberValuePair;
-import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
 import com.github.javaparser.ast.visitor.VoidVisitor;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
@@ -19,10 +16,10 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static com.github.javaparser.Utils.NamedRequestMapping;
+import static com.github.javaparser.Utils.getApiName;
 
 @Slf4j
 public class AST {
@@ -77,28 +74,6 @@ public class AST {
                     .map(Node::toString)
                     .collect(Collectors.toList());
             arg.put(api, parameters);
-        }
-
-        private Function<AnnotationExpr, String> getApiName() {
-            return x -> {
-                if (x.isSingleMemberAnnotationExpr()) {
-                    return ((SingleMemberAnnotationExpr) x).getMemberValue().toString();
-                }
-                if (x.isNormalAnnotationExpr()) {
-                    return ((NormalAnnotationExpr) x)
-                            .getPairs()
-                            .stream()
-                            .filter(y -> Objects.equals(y.getNameAsString(), "value"))
-                            .map(MemberValuePair::getValue)
-                            .map(Node::toString)
-                            .collect(Collectors.joining());
-                }
-                return "";
-            };
-        }
-
-        private Predicate<AnnotationExpr> NamedRequestMapping() {
-            return x -> Objects.equals(x.getNameAsString(), "RequestMapping");
         }
     }
 }
