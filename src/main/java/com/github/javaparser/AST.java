@@ -25,16 +25,26 @@ import static com.github.javaparser.Utils.getApiName;
 
 @Slf4j
 public class AST {
+    private static final String ROOT_PATH = "/run/media/silence/data/projects/java/trial/mall-admin/src/main/java/";
     private static final String FILE_PATH = "/run/media/silence/data/projects/java/trial/mall-admin/src/main/java/com/qhcl/mall/controller/order/OrderManagerController.java";
 
     public static void main(String[] args) throws FileNotFoundException {
         PropertyConfigurator.configure("log4j.properties");
 
         CompilationUnit compilationUnit = StaticJavaParser.parse(new File(FILE_PATH));
-        String apiPrefix = getApiPrefix(compilationUnit);
-        log.info(apiPrefix);
+        getApiPrefix(compilationUnit);
         getMethodParams(compilationUnit);
-        getImportVo(compilationUnit);
+        HashSet<String> packages = getImportVo(compilationUnit);
+    }
+
+    /**
+     * 获取java包的相对路径
+     *
+     * @param x 包名
+     * @return 包的相对路径
+     */
+    private static String getPackageRelativePath(String x) {
+        return String.join("/", x.split("\\.")).concat(".java");
     }
 
     /**
