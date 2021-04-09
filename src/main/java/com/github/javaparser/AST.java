@@ -14,10 +14,7 @@ import org.apache.log4j.PropertyConfigurator;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.github.javaparser.Utils.NamedRequestMapping;
@@ -32,9 +29,85 @@ public class AST {
         PropertyConfigurator.configure("log4j.properties");
 
         CompilationUnit compilationUnit = StaticJavaParser.parse(new File(FILE_PATH));
-        getApiPrefix(compilationUnit);
-        getMethodParams(compilationUnit);
-        HashSet<String> packages = getImportVo(compilationUnit);
+        String apiPrefix = getApiPrefix(compilationUnit);
+        List<String> pageMethods = getPageMethods(compilationUnit);
+        HashSet<String> packages = getImport(compilationUnit);
+        pageMethods.stream().map(x -> {
+            String api = getApi(apiPrefix, x);
+            String voPackage = getVoPackage(packages, x);
+            return api + ":" + voPackage;
+        }).forEach(System.out::println);
+    }
+
+    /**
+     * 获取实体包的完整引用
+     *
+     * @param packages 包的HashSet集合
+     * @param x        String
+     * @return 包的完整引用
+     */
+    private static String getVoPackage(HashSet<String> packages, String x) {
+        String vo = Arrays.
+                stream(x.split(":"))
+                .skip(1)
+                .collect(Collectors.joining());
+        return packages
+                .stream()
+                .filter(y -> y.endsWith(vo))
+                .collect(Collectors.joining());
+    }
+
+    /**
+     * 获取完整API路径
+     *
+     * @param apiPrefix String
+     * @param x         String
+     * @return String 完整API路径
+     */
+    private static String getApi(String apiPrefix, String x) {
+        String key = Arrays
+                .stream(x.split(":"))
+                .limit(1)
+                .collect(Collectors.joining());
+        return String.format("%s/%s", apiPrefix, key);
+    }
+
+    /**
+     * 获取有QueryPageDataVo 的方法对象
+     *
+     * @param compilationUnit CompilationUnit CompilationUnit对象
+     * @return List<String> 有QueryPageDataVo 的方法对象
+     */
+    private static List<String> getPageMethods(CompilationUnit compilationUnit) {
+        StringListMap methods = getMethodParams(compilationUnit);
+        return methods.entrySet()
+                .stream()
+                .filter(x -> {
+                    List<String> list = x.getValue();
+                    return list.stream().anyMatch(y -> y.contains("QueryPageDataVo"));
+                })
+                .map(x -> {
+                    String key = x.getKey().replaceAll("\"", "");
+                    String value = getPageVo(x);
+                    return key + ":" + value;
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 获取 Page内的实体对像的String
+     *
+     * @param x Map.Entry<String,List<String>> Map对象
+     * @return String 返回Page内的实体
+     */
+    private static String getPageVo(Map.Entry<String, List<String>> x) {
+        List<String> list = x.getValue();
+        return list
+                .stream()
+                .filter(y -> y.contains("QueryPageDataVo"))
+                .map(y -> y.replaceAll("QueryPageDataVo<", ""))
+                .map(y -> y.replaceAll(">", ""))
+                .collect(Collectors.joining());
     }
 
     /**
@@ -66,7 +139,7 @@ public class AST {
      * @param compilationUnit CompilationUnit 对象
      * @return HashSet 引入的自定义的实体相对路径
      */
-    private static HashSet<String> getImportVo(CompilationUnit compilationUnit) {
+    private static HashSet<String> getImport(CompilationUnit compilationUnit) {
         HashSet<String> set = new HashSet<>();
         VoidVisitor<HashSet<String>> importVisitor = new ImportVo();
         importVisitor.visit(compilationUnit, set);
@@ -95,7 +168,10 @@ public class AST {
             super.visit(ad, arg);
             ad.getAnnotations().forEach(x -> {
                 if (x.isSingleMemberAnnotationExpr()) {
-                    String api = ((SingleMemberAnnotationExpr) x).getMemberValue().toString();
+                    String api = ((SingleMemberAnnotationExpr) x)
+                            .getMemberValue()
+                            .toString()
+                            .replaceAll("\"", "");
                     arg.add(api);
                 }
             });
@@ -124,9 +200,7 @@ public class AST {
         @Override
         public void visit(ImportDeclaration id, HashSet<String> arg) {
             super.visit(id, arg);
-            if (id.getNameAsString().contains("vo")) {
-                arg.add(id.getNameAsString());
-            }
+            arg.add(id.getNameAsString());
         }
     }
 }
