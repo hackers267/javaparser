@@ -22,8 +22,9 @@ import static com.github.javaparser.Utils.getApiName;
 
 @Slf4j
 public class AST {
-    private static final String ROOT_PATH = "/run/media/silence/data/projects/java/trial/mall-admin/src/main/java/";
-    private static final String FILE_PATH = "/run/media/silence/data/projects/java/trial/mall-admin/src/main/java/com/qhcl/mall/controller/order/OrderManagerController.java";
+    public static final String QUERY_PAGE_DATA = "QueryPageData";
+    private static final String ROOT_PATH = "/run/media/silence/data/projects/java/zjt-saas/saas-persistent/src/main/java";
+    private static final String FILE_PATH = "/run/media/silence/data/projects/java/zjt-saas/saas-admin/src/main/java/com/qhcl/controller/product/ProductInfoController.java";
 
     public static void main(String[] args) throws FileNotFoundException {
         PropertyConfigurator.configure("log4j.properties");
@@ -84,7 +85,7 @@ public class AST {
                 .stream()
                 .filter(x -> {
                     List<String> list = x.getValue();
-                    return list.stream().anyMatch(y -> y.contains("QueryPageDataVo"));
+                    return list.stream().anyMatch(y -> y.contains(QUERY_PAGE_DATA));
                 })
                 .map(x -> {
                     String key = x.getKey().replaceAll("\"", "");
@@ -104,8 +105,8 @@ public class AST {
         List<String> list = x.getValue();
         return list
                 .stream()
-                .filter(y -> y.contains("QueryPageDataVo"))
-                .map(y -> y.replaceAll("QueryPageDataVo<", ""))
+                .filter(y -> y.contains(QUERY_PAGE_DATA))
+                .map(y -> y.replaceAll(QUERY_PAGE_DATA + "<", ""))
                 .map(y -> y.replaceAll(">", ""))
                 .collect(Collectors.joining());
     }
