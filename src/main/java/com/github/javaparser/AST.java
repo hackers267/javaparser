@@ -12,8 +12,7 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.log4j.PropertyConfigurator;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,8 +35,44 @@ public class AST {
         pageMethods.stream().map(x -> {
             String api = getApi(apiPrefix, x);
             String voPackage = getVoPackage(packages, x);
-            return api + ":" + voPackage;
-        }).forEach(System.out::println);
+            String path = getPackageRelativePath(voPackage);
+            return api + ":" + path;
+        }).forEach(x -> {
+            String[] list = x.split(":");
+            String api = list[0];
+            String path = list[1];
+            String abs_path = ROOT_PATH + "/" + path;
+            try {
+                List<String> filed_list = AnalyseVo.getStringList(abs_path);
+                if (filed_list.size() > 0) {
+                    String file_name = getPageFileName(api);
+                    filed_list.add(0, "#" + api);
+                    WriteFile(file_name, filed_list);
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        });
+    }
+
+    private static String getPageFileName(String api) {
+        String file_path = "/run/media/silence/data/projects/webstorm/translate/data";
+        return file_path + "/" + String.join("_", api.split("/")) + "_page.txt";
+    }
+
+    private static void WriteFile(String file_name, List<String> content) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new FileWriter(file_name));
+        content.forEach(x -> {
+            try {
+                writer.write(x + System.getProperty("line.separator"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        writer.close();
+
     }
 
     /**

@@ -18,8 +18,7 @@ public class AnalyseVo {
     private static final String ROOT_PATH = "/run/media/silence/data/projects/java/trial/mall-persistent/src/main/java/";
 
     public static List<String> getStringList(String path_string) throws FileNotFoundException {
-        String file_path = ROOT_PATH.concat(path_string);
-        File files = new File(file_path);
+        File files = new File(path_string);
 
         CompilationUnit compilationUnit = StaticJavaParser.parse(files);
         List<String> list = new ArrayList<>();
