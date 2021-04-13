@@ -23,12 +23,39 @@ import static com.github.javaparser.Utils.getApiName;
 public class AST {
     public static final String QUERY_PAGE_DATA = "QueryPageData";
     private static final String ROOT_PATH = "/run/media/silence/data/projects/java/zjt-saas/saas-persistent/src/main/java";
-    private static final String FILE_PATH = "/run/media/silence/data/projects/java/zjt-saas/saas-admin/src/main/java/com/qhcl/controller/product/ProductInfoController.java";
+    private static final String FILE_PATH = "/run/media/silence/data/projects/java/zjt-saas/saas-admin/src/main/java/com/qhcl/controller/";
 
-    public static void main(String[] args) throws FileNotFoundException {
+    public static void main(String[] args) {
         PropertyConfigurator.configure("log4j.properties");
+        List<String> list = getJavaFile(FILE_PATH);
+        list.forEach(x -> {
+            try {
+                generateFile(x);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        });
+    }
 
-        CompilationUnit compilationUnit = StaticJavaParser.parse(new File(FILE_PATH));
+    private static List<String> getJavaFile(String file_path) {
+        List<String> list = new ArrayList<>();
+        File file = new File(file_path);
+        File[] files = file.listFiles(x -> x.getName().endsWith(".java") || x.isDirectory());
+        Arrays.stream(Objects.requireNonNull(files))
+                .filter(x -> !x.getName().endsWith("activiti"))
+                .forEach(x -> {
+                    if (x.isDirectory()) {
+                        List<String> l = getJavaFile(x.getPath());
+                        list.addAll(l);
+                    } else {
+                        list.add(x.getAbsolutePath());
+                    }
+                });
+        return list;
+    }
+
+    private static void generateFile(String file_path) throws FileNotFoundException {
+        CompilationUnit compilationUnit = StaticJavaParser.parse(new File(file_path));
         String apiPrefix = getApiPrefix(compilationUnit);
         List<String> pageMethods = getPageMethods(compilationUnit);
         HashSet<String> packages = getImport(compilationUnit);
@@ -46,7 +73,7 @@ public class AST {
                 List<String> filed_list = AnalyseVo.getStringList(abs_path);
                 if (filed_list.size() > 0) {
                     String file_name = getPageFileName(api);
-                    filed_list.add(0, "#" + api);
+                    filed_list.add(0, api);
                     WriteFile(file_name, filed_list);
                 }
 
