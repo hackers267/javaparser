@@ -21,6 +21,7 @@ public class AST {
     public static final String QUERY_PAGE_DATA = "QueryPageData";
     private static final String ROOT_PATH = "/home/silence/projects/java/zjt-saas/saas-persistent/src/main/java";
     private static final String FILE_PATH = "/home/silence/projects/java/zjt-saas/saas-admin/src/main/java/com/qhcl/controller/";
+    private static final String QUERY_PAGE_DATA_VO = "QueryPageDataVo";
 
     public static void main(String[] args) {
         PropertyConfigurator.configure("log4j.properties");
@@ -151,7 +152,9 @@ public class AST {
         return list
                 .stream()
                 .filter(y -> y.contains(QUERY_PAGE_DATA))
-                .map(y -> y.replaceAll(QUERY_PAGE_DATA + "<", ""))
+                .map(y->y.replaceAll(QUERY_PAGE_DATA_VO,""))
+                .map(y -> y.replaceAll(QUERY_PAGE_DATA, ""))
+                .map(y->y.replaceAll("<",""))
                 .map(y -> y.replaceAll(">", ""))
                 .collect(Collectors.joining());
     }
