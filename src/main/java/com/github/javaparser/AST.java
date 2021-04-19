@@ -16,25 +16,21 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.github.javaparser.Utils.NamedRequestMapping;
-import static com.github.javaparser.Utils.getApiName;
-
 @Slf4j
 public class AST {
     public static final String QUERY_PAGE_DATA = "QueryPageData";
-    private static final String ROOT_PATH = "/run/media/silence/data/projects/java/zjt-saas/saas-persistent/src/main/java";
-    private static final String FILE_PATH = "/run/media/silence/data/projects/java/zjt-saas/saas-admin/src/main/java/com/qhcl/controller/";
+    private static final String ROOT_PATH = "/home/silence/projects/java/zjt-saas/saas-persistent/src/main/java";
+    private static final String FILE_PATH = "/home/silence/projects/java/zjt-saas/saas-admin/src/main/java/com/qhcl/controller/";
 
     public static void main(String[] args) {
         PropertyConfigurator.configure("log4j.properties");
         List<String> list = getJavaFile(FILE_PATH);
-        list.forEach(x -> {
-            try {
-                generateFile(x);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-        });
+        //            try {
+        //                generateFile(x);
+        //            } catch (FileNotFoundException e) {
+        //                e.printStackTrace();
+        //            }
+        list.forEach(System.out::println);
     }
 
     private static List<String> getJavaFile(String file_path) {
@@ -74,7 +70,7 @@ public class AST {
                 if (filed_list.size() > 0) {
                     String file_name = getPageFileName(api);
                     filed_list.add(0, api);
-                    WriteFile(file_name, filed_list);
+                    Utils.WriteFile(file_name, filed_list);
                 }
 
             } catch (IOException e) {
@@ -87,19 +83,6 @@ public class AST {
     private static String getPageFileName(String api) {
         String file_path = "/run/media/silence/data/projects/webstorm/translate/data";
         return file_path + "/" + String.join("_", api.split("/")) + "_page.txt";
-    }
-
-    private static void WriteFile(String file_name, List<String> content) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new FileWriter(file_name));
-        content.forEach(x -> {
-            try {
-                writer.write(x + System.getProperty("line.separator"));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-        writer.close();
-
     }
 
     /**
@@ -247,8 +230,7 @@ public class AST {
             super.visit(md, arg);
             String api = md.getAnnotations()
                     .stream()
-                    .filter(NamedRequestMapping())
-                    .map(getApiName())
+                    .map(x->x.getNameAsString())
                     .collect(Collectors.joining());
             List<String> parameters = md.getParameters()
                     .stream()
