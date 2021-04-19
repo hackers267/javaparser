@@ -1,8 +1,11 @@
 package com.github.javaparser;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.expr.MemberValuePair;
+import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +14,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -38,7 +42,20 @@ public class AnalyseVo {
     private static String getComment(FieldDeclaration c) {
         return c.getAnnotations()
                 .stream()
-                .map(x -> x.getChildNodes().get(1).getChildNodes().get(1).toString())
+                .filter(x -> Objects.equals(x.getNameAsString(), "ApiModelProperty"))
+                .map(x -> {
+                    if (x.isNormalAnnotationExpr()) {
+                        return ((NormalAnnotationExpr) x)
+                                .getPairs()
+                                .stream()
+                                .filter(y -> Objects.equals(y.getNameAsString(), "value"))
+                                .map(MemberValuePair::getValue)
+                                .map(Node::toString)
+                                .collect(Collectors.joining());
+
+                    }
+                    return "";
+                })
                 .collect(Collectors.joining());
     }
 
