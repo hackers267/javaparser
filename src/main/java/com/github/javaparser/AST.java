@@ -155,9 +155,9 @@ public class AST {
         return list
                 .stream()
                 .filter(y -> y.contains(QUERY_PAGE_DATA))
-                .map(y->y.replaceAll(QUERY_PAGE_DATA_VO,""))
+                .map(y -> y.replaceAll(QUERY_PAGE_DATA_VO, ""))
                 .map(y -> y.replaceAll(QUERY_PAGE_DATA, ""))
-                .map(y->y.replaceAll("<",""))
+                .map(y -> y.replaceAll("<", ""))
                 .map(y -> y.replaceAll(">", ""))
                 .collect(Collectors.joining());
     }
