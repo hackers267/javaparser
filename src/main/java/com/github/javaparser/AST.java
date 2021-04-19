@@ -28,12 +28,13 @@ public class AST {
     public static void main(String[] args) {
         PropertyConfigurator.configure("log4j.properties");
         List<String> list = getJavaFile(FILE_PATH);
-        //            try {
-        //                generateFile(x);
-        //            } catch (FileNotFoundException e) {
-        //                e.printStackTrace();
-        //            }
-        list.forEach(System.out::println);
+        list.forEach(x -> {
+            try {
+                generateFile(x);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     private static List<String> getJavaFile(String file_path) {
@@ -241,8 +242,8 @@ public class AST {
             super.visit(md, arg);
             String api = md.getAnnotations()
                     .stream()
-                    .filter(x-> x.getNameAsString().equals("RequestMapping"))
-                    .map(x-> ((SingleMemberAnnotationExpr)x).getMemberValue())
+                    .filter(x -> x.getNameAsString().equals("RequestMapping"))
+                    .map(x -> ((SingleMemberAnnotationExpr) x).getMemberValue())
                     .map(Node::toString)
                     .collect(Collectors.joining());
             List<String> parameters = md.getParameters()
