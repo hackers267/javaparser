@@ -12,7 +12,9 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.log4j.PropertyConfigurator;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -179,7 +181,10 @@ public class AST {
         VoidVisitor<List<String>> annotationVisitor = new ApiPrefix();
         List<String> apiPrefixes = new ArrayList<>();
         annotationVisitor.visit(compilationUnit, apiPrefixes);
-        return apiPrefixes.get(0);
+        if (apiPrefixes.size() > 0) {
+            return apiPrefixes.get(0);
+        }
+        return "";
     }
 
     /**
@@ -215,15 +220,18 @@ public class AST {
         @Override
         public void visit(ClassOrInterfaceDeclaration ad, List<String> arg) {
             super.visit(ad, arg);
-            ad.getAnnotations().forEach(x -> {
-                if (x.isSingleMemberAnnotationExpr()) {
-                    String api = ((SingleMemberAnnotationExpr) x)
-                            .getMemberValue()
-                            .toString()
-                            .replaceAll("\"", "");
-                    arg.add(api);
-                }
-            });
+            ad.getAnnotations()
+                    .stream()
+                    .filter(x -> Objects.equals(x.getNameAsString(), "RequestMapping"))
+                    .forEach(x -> {
+                        if (x.isSingleMemberAnnotationExpr()) {
+                            String api = ((SingleMemberAnnotationExpr) x)
+                                    .getMemberValue()
+                                    .toString()
+                                    .replaceAll("\"", "");
+                            arg.add(api);
+                        }
+                    });
         }
     }
 
