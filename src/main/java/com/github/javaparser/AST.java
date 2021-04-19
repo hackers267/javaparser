@@ -233,7 +233,9 @@ public class AST {
             super.visit(md, arg);
             String api = md.getAnnotations()
                     .stream()
-                    .map(x->x.getNameAsString())
+                    .filter(x-> x.getNameAsString().equals("RequestMapping"))
+                    .map(x-> ((SingleMemberAnnotationExpr)x).getMemberValue())
+                    .map(Node::toString)
                     .collect(Collectors.joining());
             List<String> parameters = md.getParameters()
                     .stream()
